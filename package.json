@@ -2,7 +2,7 @@
   "name": "@natcore/flow",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "directories": {
     "test": "tests"
   },
