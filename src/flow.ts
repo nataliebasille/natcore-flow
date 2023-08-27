@@ -39,11 +39,7 @@ export type FlowProcedure<
   payload: TPayload,
   ctx: RemoveMarker<
     OverrideObject<
-      TBaseContext extends MiddlewareContextMarker<any>
-        ? MiddlewareContext<TBaseContext>
-        : TBaseContext extends object
-        ? TBaseContext
-        : never,
+      MiddlewareContext<TBaseContext>,
       MiddlewareContext<TMiddlewareReturn>
     >
   >
@@ -103,7 +99,7 @@ export const createFlow = <
         ? secondMiddleware
         : !secondMiddleware
         ? firstMiddleware
-        : (compose(firstMiddleware, secondMiddleware) as any)
+        : (compose(firstMiddleware as any, secondMiddleware) as any)
     ) as any;
   };
 

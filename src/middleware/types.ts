@@ -9,6 +9,16 @@ export type MiddlewareContext<Marker> = Marker extends MiddlewareContextMarker<
   infer TContext
 >
   ? TContext
+  : Marker extends UnusedMarker
+  ? object
+  : Marker extends object
+  ? {
+      [K in keyof Marker & string]: Marker[K] extends MiddlewareContextMarker<
+        infer TContext
+      >
+        ? TContext
+        : never;
+    }[keyof Marker & string]
   : Record<string, never>;
 
 export type ExtendMiddlewareContext<

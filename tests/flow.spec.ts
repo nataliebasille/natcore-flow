@@ -64,6 +64,7 @@ describe('context', () => {
       );
 
       flow((_, ctx) => {
+        expectTypeOf(ctx).not.toBeNever();
         expectTypeOf({
           foo: 123,
           foo2: 'bar2',
@@ -119,21 +120,69 @@ describe('context', () => {
     }>();
   });
 
-  it('can still infer correct context from middleware when a transform is used', async () => {
+  it('can infer correct context from middleware when a transform is used', async () => {
+    createFlow(async (next) => {
+      const value = await next({
+        foo: 'bar',
+      });
+
+      return { type: 'ok' as const, value };
+    })((_, ctx) => {
+      expectTypeOf(ctx).toEqualTypeOf<{
+        foo: string;
+      }>();
+    });
+  });
+
+  it('should receive correct context from middleware when a transform is used', async () => {
     const action = createFlow(async (next) => {
       const value = await next({
         foo: 'bar',
       });
 
       return { type: 'ok' as const, value };
-    })(() => {
+    })((_, ctx) => {
+      expect(ctx).toEqual({
+        foo: 'bar',
+      });
+    });
+
+    await action({});
+  });
+
+  it('should infer correct result when middleware transform is used', async () => {
+    const action = createFlow(async (next) => {
+      const value = await next({
+        foo: 'bar',
+      });
+
+      return { type: 'ok' as const, value };
+    })((_) => {
       return 'test value';
     });
 
-    action((_, ctx) => {
-      expectTypeOf(ctx).toEqualTypeOf<{
-        foo: string;
-      }>();
+    const result = await action({});
+    expectTypeOf(result).toEqualTypeOf<{
+      type: 'ok';
+      value: string;
+    }>();
+  });
+
+  it('should receive correct result when middleware transform is used', async () => {
+    const action = createFlow(async (next) => {
+      const value = await next({
+        foo: 'bar',
+      });
+
+      return { type: 'ok' as const, value };
+    })((_) => {
+      return 'test value';
+    });
+
+    const result = await action({});
+    expect(result).toEqual({
+      type: 'ok',
+      value: 'test value',
     });
   });
 
@@ -178,6 +227,22 @@ describe('context', () => {
       });
 
       await action({});
+    });
+
+    it('should infer correct context when a middleware transform is used', () => {
+      createFlow(async (next) => {
+        const value = await next({
+          foo: 'bar',
+        });
+
+        return { type: 'ok' as const, value };
+      }).extend((next, ctx) => {
+        expectTypeOf(ctx).not.toBeNever();
+        expectTypeOf({
+          foo: 'bar',
+        }).toEqualTypeOf<typeof ctx>;
+        return next();
+      });
     });
   });
 });
