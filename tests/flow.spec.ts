@@ -29,7 +29,7 @@ describe('context', () => {
     });
   });
 
-  describe('with single middleware', () => {
+  describe('with middleware', () => {
     it('should have context configured by middleware', () => {
       const flow = createFlow((next) => {
         return next({
@@ -175,7 +175,7 @@ describe('context', () => {
       });
 
       return { type: 'ok' as const, value };
-    })((_) => {
+    })(async (_) => {
       return 'test value';
     });
 
@@ -183,6 +183,24 @@ describe('context', () => {
     expect(result).toEqual({
       type: 'ok',
       value: 'test value',
+    });
+
+    it('infers correct result for async procedure with a middleware transform', async () => {
+      const action = createFlow(async (next) => {
+        const value = await next({
+          foo: 'bar',
+        });
+
+        return { type: 'ok' as const, value };
+      })(async (_) => {
+        return 'test value';
+      });
+
+      const result = await action({});
+      expectTypeOf(result).toEqualTypeOf<{
+        type: 'ok';
+        value: string;
+      }>();
     });
   });
 

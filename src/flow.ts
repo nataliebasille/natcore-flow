@@ -47,7 +47,10 @@ export type FlowProcedure<
 
 export type FlowAction<TPayload, TMiddlewareReturn, TProcedureReturn> = (
   payload: TPayload
-) => FlowActionReturn<TMiddlewareReturn, TProcedureReturn> extends infer R
+) => FlowActionReturn<
+  TMiddlewareReturn,
+  Awaited<TProcedureReturn>
+> extends infer R
   ? R extends Promise<infer U>
     ? Promise<U>
     : Promise<R>
